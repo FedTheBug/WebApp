@@ -1,45 +1,22 @@
 import os
 import secrets
-from flask import render_template, url_for, request, jsonify, flash, redirect, request
+from flask import render_template, url_for, request, jsonify, flash, redirect, request, abort
 from app import app, db, bcrypt
-from app.forms import RegistrationForm, LoginForm, UpdateAccountForm
+from app.forms import RegistrationForm, LoginForm, UpdateAccountForm, SentenceForm
 from app.models import User, Sentence
 from flask_login import login_user, current_user, logout_user, login_required
 
-sentences = [
-    {
-        'author':'ডঃ নাবিল মোহাম্মেদ',
-        'sentence':'সে একজন ছাত্র',
-        'entity_1': 'সে',
-        'entity_2' : 'ছাত্র',
-        'relation': 'is_a'
-    },
-    {
-        'author':'ডঃ নুর আলম',
-        'sentence':'রহিম ম্যাচটি জিতেছে',
-        'entity_1': 'রহিম',
-        'entity_2' : 'ম্যাচটি',
-        'relation': 'job_done'
-    },
-    {
-        'author':'আবদুল মালেক',
-        'sentence':'তার একটি বাড়ি আছে',
-        'entity_1': 'তার',
-        'entity_2' : 'একটি বাড়ি',
-        'relation': 'has_a'
-    }
-]
 
 
 @app.route('/')
 @app.route('/home')
-def home():
+def home(): 
     return render_template('home.html')
 
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html',sentences = sentences)
-
+@app.route('/questions')
+def questions():
+    sentences = Sentence.query.all()
+    return render_template('questions.html',sentences = sentences)
 
 @app.route('/form')
 def my_form():
@@ -64,20 +41,20 @@ def register():
         db.session.add(user)
         db.session.commit()
         flash(f'Your account created has been created! You are now able to log in', 'success')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('questions'))
     return render_template('register.html', title = 'Register', form = form)
 
 @app.route("/login",methods = ['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect (url_for('dashboard'))
+        return redirect (url_for('questions'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember = form.remember.data)
             next_page = request.args.get('next')
-            return redirect (next_page) if next_page else redirect(url_for('dashboard'))
+            return redirect (next_page) if next_page else redirect(url_for('questions'))
         else:
             flash('Login Unsuccessful. Please check username and password','danger')
     return render_template('login.html', title = 'Login', form = form)
@@ -114,3 +91,49 @@ def account():
         form.email.data = current_user.email
     image_file = url_for('static',filename='profile_pics/'+current_user.image_file)
     return render_template('account.html', title = 'Account', image_file=image_file, form=form)
+
+
+@app.route("/question/new",methods = ['GET', 'POST'])
+@login_required
+def new_question():
+    form = SentenceForm()
+    if form.validate_on_submit():
+        sentence = Sentence(question=form.question.data, answer=form.answer.data, author = current_user)
+        db.session.add(sentence)
+        db.session.commit()
+        flash('Your question has been created!', 'success')
+        return redirect(url_for('questions'))
+    return render_template('create_question.html', title = 'New Question', form = form, legend = 'New Question')
+
+@app.route("/sentence/<int:sentence_id>")
+def sentence(sentence_id):
+    sentence = Sentence .query.get_or_404(sentence_id)
+    return render_template('sentence.html',question = sentence.question, sentence=sentence)
+
+@app.route("/sentence/<int:sentence_id>/update",methods = ['GET', 'POST'])
+@login_required
+def update_sentence(sentence_id):
+    sentence = Sentence.query.get_or_404(sentence_id)
+    if sentence.author != current_user:
+        abort(403)
+    form = SentenceForm()
+    if form.validate_on_submit():
+        sentence.question = form.question.data
+        sentence.answer = form.answer.data
+        db.session.commit()
+        flash('Your question has been updated','success')
+        return redirect (url_for('sentence',sentence_id=sentence.id))
+    elif request.method =='GET':
+        form.question.data = sentence.question
+        form.question.answer = sentence.answer
+    return render_template('create_question.html', title = 'Update Question', form = form, legend='Update Question')
+@app.route("/sentence/<int:sentence_id>/delete",methods = ['POST'])
+@login_required
+def delete_sentence(sentence_id):
+    sentence = Sentence.query.get_or_404(sentence_id)
+    if sentence.author != current_user:
+        abort(403)
+    db.session.delete(sentence)
+    db.session.commit()
+    flash('Your question has been deleted','success')
+    return redirect (url_for('questions'))

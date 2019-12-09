@@ -9,7 +9,7 @@ from wtforms import Form, TextField, TextAreaField, validators, StringField, Sub
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '11f0c9648013c9a24e29a1e3f8579585'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///database.db'
 db = SQLAlchemy(app)
 bcrypt  = Bcrypt(app)
 login_manager = LoginManager(app)

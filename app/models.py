@@ -15,15 +15,13 @@ class User(db.Model, UserMixin):
     sentences = db.relationship('Sentence', backref = 'author', lazy = True)
 
     def __repr__(self):
-        return f"User('{ self.username }, '{ self.email }', '{ self.image_file }')"
+        return f"User('{ self.username }', '{ self.email }', '{ self.image_file }')"
 
 class Sentence(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    sentence = db.Column(db.Text, nullable = False)
-    entity_1 = db.Column(db.Text, nullable = False)
-    entity_2 = db.Column(db.Text, nullable = False)
-    relation = db.Column(db.Text, nullable = False)
+    question = db.Column(db.Text, nullable = False)
+    answer = db.Column(db.Text, nullable = False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
 
     def __repr__(self):
-        return f"Sentence('{ self.sentence }','{ self.entity_1 }','{ self.entity_2 }','{ self.relation }')"
+        return f"Sentence('{ self.question }','{ self.answer }')"
