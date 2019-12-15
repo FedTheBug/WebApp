@@ -1,6 +1,8 @@
 import os
 import secrets
+from datetime import datetime
 from flask import render_template, url_for, request, jsonify, flash, redirect, request, abort
+from flask_json import json_response
 from app import app, db, bcrypt
 from app.forms import RegistrationForm, LoginForm, UpdateAccountForm, SentenceForm
 from app.models import User, Sentence
@@ -29,6 +31,25 @@ def my_form_get():
     string =  text.split()
 
     return jsonify(string) 
+
+@app.route("/json", methods=['POST','GET'])
+def json():
+ 
+    req_data = request.get_json()
+    entity1 = req_data['e1']
+    entity2 = req_data['e2']
+    relation = req_data['relation']
+    sentence = req_data['sentence']
+    
+    for index in range(len(req_data)):
+        for key in req_data[index]:
+            print(req_data['index'][0]['key'])
+
+    
+@app.route('/get_time')
+def get_time():
+    now = datetime.utcnow()
+    return json_response(time=now)
 
 @app.route("/register", methods = ['GET', 'POST'])
 def register():
