@@ -3,7 +3,7 @@
     {% for sentence in sentences %}
     
         <article class="media content-section">
-          <img class="rounded-circle article-image" src="{{ url_for('static', filename = 'profile_pics/' + sentence.author.image_file) }}">
+          
           <div class="media-body">
             <div class="article-metadata">
               <a class="mr-2" href="#">{{ sentence.author.username }}</a>

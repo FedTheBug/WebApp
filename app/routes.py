@@ -1,5 +1,6 @@
 import os
 import secrets
+import requests
 from datetime import datetime
 from flask import render_template, url_for, request, jsonify, flash, redirect, request, abort
 from flask_json import json_response
@@ -26,30 +27,32 @@ def my_form():
 
 @app.route('/form', methods = ['GET','POST'])
 def my_form_get():
-    
+
     text = request.form.get('text') 
-    string =  text.split()
+    r = requests.post('http://35.192.90.7/predict', data=text.encode('utf-8'))
+    # string =  text.split()
+    r = { 'data': r.json() }
+    return r
+    # return jsonify(r.json())
 
-    return jsonify(string) 
-
-@app.route("/json", methods=['POST','GET'])
-def json():
+# @app.route("/json", methods=['POST','GET'])
+# def json():
  
-    req_data = request.get_json()
-    entity1 = req_data['e1']
-    entity2 = req_data['e2']
-    relation = req_data['relation']
-    sentence = req_data['sentence']
+#     req_data = request.get_json()
+#     entity1 = req_data['e1']
+#     entity2 = req_data['e2']
+#     relation = req_data['relation']
+#     sentence = req_data['sentence']
     
-    for index in range(len(req_data)):
-        for key in req_data[index]:
-            print(req_data['index'][0]['key'])
+#     for index in range(len(req_data)):
+#         for key in req_data[index]:
+#             print(req_data['index'][0]['key'])
 
     
-@app.route('/get_time')
-def get_time():
-    now = datetime.utcnow()
-    return json_response(time=now)
+# @app.route('/get_time')
+# def get_time():
+#     now = datetime.utcnow()
+#     return json_response(time=now)
 
 @app.route("/register", methods = ['GET', 'POST'])
 def register():
