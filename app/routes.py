@@ -1,6 +1,7 @@
 import os
 import secrets
 import requests
+import json
 from datetime import datetime
 from flask import render_template, url_for, request, jsonify, flash, redirect, request, abort
 from flask_json import json_response
@@ -24,16 +25,15 @@ def questions():
 @app.route('/form')
 def my_form():
     return render_template('form.html')
+    #  return redirect(url_for('my_form_get'))
 
 @app.route('/form', methods = ['GET','POST'])
 def my_form_get():
 
     text = request.form.get('text') 
-    r = requests.post('http://35.192.90.7/predict', data=text.encode('utf-8'))
-    # string =  text.split()
-    r = { 'data': r.json() }
-    return r
-    # return jsonify(r.json())
+    posts = requests.post('http://35.192.90.7/predict', data=text.encode('utf-8'))
+    posts = posts.json()
+    return render_template('demoQuestions.html',posts=posts,text=text)
 
 # @app.route("/json", methods=['POST','GET'])
 # def json():
